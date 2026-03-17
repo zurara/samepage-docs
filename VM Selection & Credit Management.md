@@ -30,14 +30,17 @@ View credit balances in dashboard → Select VM tier before launching simulation
 ## Key Terms
 
 - **Personal Credit**: Credit allocated to an individual user account
-- **Team Credit**: Shared credit pool available to all members of a team — consumed first, or as a fallback (TODO: confirm priority order with CEO)
+- **Team Credit**: Shared credit pool available to all members of a team — consumed as fallback when personal credit is exhausted
 - **VM Tier**: A virtual machine configuration option (e.g., Standard, High-Performance) with different compute specs and credit cost rates
 - **Credit Balance**: Current available credit; can go negative after a simulation completes
 - **Top-up**: Adding credit to an account — handled exclusively by support in V1, not self-serve
 
 ## Decisions
 
-**Simulation completion guarantee:**
+**Credit consumption order:**
+- **Personal credit depletes first, team credit is the fallback**: When a simulation runs, personal credit is consumed first. Team credit is only drawn when personal credit reaches 0. This gives individuals autonomy while allowing team credit as a safety net.
+
+
 - **Never interrupt a running simulation**: A simulation that starts will always run to completion, even if credit hits 0 or goes negative mid-run. A failed mid-run result is worse than a predictable "finish then notify" approach. Engineers cannot restart a complex simulation from scratch without significant time loss.
 
 **Negative credit handling:**
@@ -146,9 +149,9 @@ View credit balances in dashboard → Select VM tier before launching simulation
 ---
 
 ## Notes
-- TODO: Confirm with CEO — when both personal credit and team credit exist, which is consumed first? Or are they separate pools for different simulation types?
-- TODO: Define VM tiers available at launch (names, specs, credit cost per hour or per run)
+TODO: Define VM tiers available at launch (names, specs, credit cost per hour or per run)
 - TODO: Define what "contact support" means in the UI — email link, in-app chat, WeChat for CN users?
 
 ## Changelog
 - 2026-03-17: Created feature
+- 2026-03-17: Confirmed credit consumption order — personal first, team as fallback
