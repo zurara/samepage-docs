@@ -31,11 +31,16 @@ View credit balances in dashboard → Select VM tier before launching simulation
 
 - **Personal Credit**: Credit allocated to an individual user account
 - **Team Credit**: Shared credit pool available to all members of a team — consumed as fallback when personal credit is exhausted
-- **VM Tier**: A virtual machine configuration option (e.g., Standard, High-Performance) with different compute specs and credit cost rates
+- **VM Tier**: One of two machine options — Free Machine (no credit cost) or Paid Machine (credit deducted per second of runtime)
+- **Free Machine**: Standard compute, available to all users, consumes no credit
+- **Paid Machine**: Higher compute, credit is deducted per second of active simulation runtime
 - **Credit Balance**: Current available credit; can go negative after a simulation completes
 - **Top-up**: Adding credit to an account — handled exclusively by support in V1, not self-serve
 
 ## Decisions
+
+**VM tiers:**
+- **Two tiers only in V1 — Free and Paid**: Free Machine has no cost and suits standard simulations. Paid Machine is billed per second of runtime for higher compute needs. No intermediate tiers in V1; keeps selection simple and billing logic straightforward.
 
 **Credit consumption order:**
 - **Personal credit depletes first, team credit is the fallback**: When a simulation runs, personal credit is consumed first. Team credit is only drawn when personal credit reaches 0. This gives individuals autonomy while allowing team credit as a safety net.
@@ -65,7 +70,7 @@ View credit balances in dashboard → Select VM tier before launching simulation
   - Due: TODO
   - Estimate: 2d
 
-- [ ] ODE-X-D2 Design VM selection UI — pre-launch step showing available tiers, cost per run estimate, current credit balance
+- [ ] ODE-X-D2 Design VM selection UI — pre-launch step showing Free Machine vs Paid Machine, credit cost rate (per second) for paid option, current credit balance
   - Owner: @TODO
   - Due: TODO
   - Estimate: 3d
@@ -99,12 +104,12 @@ View credit balances in dashboard → Select VM tier before launching simulation
   - Owner: @TODO
   - Estimate: 2d
 
-- [ ] ODE-X-B2 API: Accept VM tier selection at simulation launch; record chosen tier and estimated credit cost
+- [ ] ODE-X-B2 API: Accept VM tier selection at simulation launch; for Paid Machine, begin per-second credit metering on simulation start
   - Owner: @TODO
   - Estimate: 2d
   - Depends on: ODE-X-B1
 
-- [ ] ODE-X-B3 Implement simulation completion guarantee — simulation task must not be terminated due to credit exhaustion; deduct credit post-completion (balance may go negative)
+- [ ] ODE-X-B3 Implement simulation completion guarantee — Paid Machine simulation must not be terminated when credit hits 0 mid-run; continue metering (balance goes negative) until task completes, then finalize deduction
   - Owner: @TODO
   - Estimate: 3d
   - Depends on: ODE-X-B2
@@ -155,3 +160,4 @@ TODO: Define VM tiers available at launch (names, specs, credit cost per hour or
 ## Changelog
 - 2026-03-17: Created feature
 - 2026-03-17: Confirmed credit consumption order — personal first, team as fallback
+- 2026-03-17: Confirmed VM tiers — Free Machine (no cost) and Paid Machine (per-second billing)
