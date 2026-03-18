@@ -79,8 +79,8 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
 **Credit gate — metro card model (per VM):**
 - Per VM: credit > 0 allows new launch; credit ≤ 0 blocks new launch on that VM. In-flight simulations always complete. Top-up settles deficit first, then remainder becomes usable. e.g. balance = –0.5 hr, top-up = 10 hr → new balance = 9.5 hr.
 
-**Credit metering — per minute, rounded up:**
-- Runtime rounded up to nearest minute. e.g. 1 min 30 sec → 2 min → 0.033 hr deducted. Stored and displayed as decimal hours.
+**Credit metering — precise, displayed as decimal hours:**
+- Runtime is recorded with precision by the backend. Displayed to users as decimal hours (e.g. 1.50 hr, 0.03 hr). No rounding rule applied at product level.
 
 **No admin panel in V1:**
 - Team quota management, per-member allocation, and usage reports are out of scope. This version is read-only visibility for all team members.
@@ -90,7 +90,7 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
 - Options:
   - `Run in local browser` · `Private · Free · Best for small models`
   - `Run on cloud server` · `1vCPU · 8 GB RAM · Subscription`
-  - `Run on virtual machine` *(Early Access icon)* · `2vCPU · 16 GB RAM · Top-up Credits · billed per min`
+  - `Run on virtual machine` *(Early Access icon)* · `2vCPU · 16 GB RAM · Top-up Credits`
   - `Run on virtual machine` *(disabled)* · `2vCPU · 16 GB RAM · Out of Credits`
 - Disabled VM hover hint: *"No credits remaining. Contact support to top up."*
 
@@ -114,7 +114,7 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
   ```
 - No other members' usage shown
 - **Per-VM ⓘ hint:**
-  *"Team quota for this VM type. Shared across all members. Billed per minute (rounded up), shown in decimal hours. Current simulation always completes — new launches blocked at 0. Contact support to top up."*
+  *"Team quota for this VM type. Shared across all members. Usage shown in decimal hours. Current simulation always completes — new launches blocked at 0. Contact support to top up."*
 - **Low credit inline warning (< 1% of total remaining):**
   *"Running low. Contact support to top up — top-up covers your deficit first, then adds to your balance."*
 
@@ -233,10 +233,16 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
 ## Notes
 
 - **GEMU contract: 200 hr total, expires 3 years from purchase date**
-- VM provisioning, per-minute metering, and team/member account data model are already implemented in the backend — no new backend infrastructure required for this feature
+- VM provisioning, precise runtime metering, and team/member account data model are already implemented in the backend — no new backend infrastructure required for this feature
 - TODO: Confirm what "contact support" means in UI — email link, in-app chat, or other channel
 - Backend should store per-VM, per-member usage from day one — client API only exposes current user's usage per VM in V1, full data ready for admin panel in V2
 - Frontend component must render VM rows dynamically from API list — never hardcode VM types
+
+> ⚠️ **Discussion needed: Simulation result storage**
+> If a simulation produces large result files, where are they stored and who pays for storage? Storage limits could become a blocker for heavy VM users. Needs clarification before feature goes live.
+
+> ⚠️ **Discussion needed: Failed simulation billing**
+> If a simulation fails, does the runtime still count against the team quota? Two cases need separate answers: (1) failure caused by user configuration error — likely should count; (2) failure caused by platform/infrastructure error — likely should not count. **Check contract with GEMU on how this is defined.**
 
 ## Changelog
 
@@ -244,4 +250,5 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
 - 2026-03-18: Changed credit unit to hours, billed per minute rounded up (1 min 30 sec → 2 min → 0.033 hr)
 - 2026-03-18: Removed per-member usage from UI — client shows per-VM team quota + your usage only
 - 2026-03-18: Changed to per-VM independent quota model — each VM has its own team quota and credit gate; hours displayed as decimals
-- 2026-03-18: Clarified platform context — ODE Platform; feature controlled by user-level flag for GEMU members
+- 2026-03-18: Removed rounding rule — backend records precise runtime, display in decimal hours only
+- 2026-03-18: Added two open discussion items — result storage limits and failed simulation billing
