@@ -6,7 +6,7 @@
 **Owner**: @TODO
 **Priority**: `P1`
 **Target**: TODO
-**Progress**: 0/13 tasks ✓
+**Progress**: 0/16 tasks ✓
 
 
 ## Why
@@ -15,7 +15,9 @@ Engineers need to choose the right compute environment for their simulation and 
 
 ## Who
 
-Team members running simulations on the GEMU platform. Each member sees only their own usage and the shared team quota — not other members' usage. Full breakdown is admin-only.
+GEMU team members using the ODE Platform. Each member sees only their own usage and the shared team quota — not other members' usage. Full breakdown is admin-only.
+
+Feature visibility is controlled at the user level — specific ODE user accounts belonging to the GEMU team are flagged in the backend to enable access. Non-flagged users on the same platform see no difference in their UI.
 
 ## What
 
@@ -47,11 +49,14 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
 - **Credit Gate (per VM)**: Independent per VM type. Credit > 0 allows launch on that VM. Credit ≤ 0 blocks new launches on that VM only.
 - **Credit Metering Unit**: Billed per minute, expressed as decimal hours. Runtime rounded up to nearest minute — e.g. 1 min 30 sec → 2 min → 0.033 hr deducted.
 - **Top-up**: Adding a new hour batch to a VM's quota — handled by support in V1. Deficit settled first before new balance is usable.
-- **Early Access**: Feature is in limited rollout for whitelisted users. Indicated by icon, not text labels in hints.
+- **Early Access**: Feature only visible to ODE users whose accounts are flagged as GEMU members in the backend. Non-flagged users see no VM option and no Computation Credits section. Indicated by icon on visible UI elements.
 
 ---
 
 ## Decisions
+
+**Feature visibility — user-level flag on ODE Platform:**
+- The VM option and Computation Credits section are only rendered for ODE user accounts flagged as GEMU members. Flagging is managed in the backend — no UI toggle. Non-flagged users on the same ODE instance see no change to their experience. This is not a role or permission system; it is a simple boolean flag per user account.
 
 **Top-up batch model — multiple batches per VM:**
 - Each top-up creates a new batch with its own hour amount and expiry date. Multiple batches can coexist per VM type. Hours consumed from the earliest-expiring batch first — reduces risk of credit loss from expiry.
@@ -178,6 +183,10 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
   - Estimate: 1d
   - Depends on: GEMU-1-B2
 
+- [ ] GEMU-1-B4 Implement user-level feature flag — mark specific ODE user accounts as GEMU members in backend. API responses for VM options and Computation Credits only returned for flagged users.
+  - Owner: @TODO
+  - Estimate: 1d
+
 ### Test [T]
 - [ ] GEMU-1-T1 Test credit display — batch list accuracy (amounts + expiry dates), expiry warning indicator, total remaining calculation, decimal formatting. Verify other members' data not exposed.
   - Owner: @TODO
@@ -188,6 +197,11 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
   - Owner: @TODO
   - Estimate: 2d
   - Depends on: GEMU-1-F4, GEMU-1-B3
+
+- [ ] GEMU-1-T3 Test feature flag — flagged user sees VM option and Computation Credits; non-flagged user on same ODE instance sees neither
+  - Owner: @TODO
+  - Estimate: 0.5d
+  - Depends on: GEMU-1-B4, GEMU-1-F2
 
 ---
 
@@ -230,4 +244,4 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
 - 2026-03-18: Changed credit unit to hours, billed per minute rounded up (1 min 30 sec → 2 min → 0.033 hr)
 - 2026-03-18: Removed per-member usage from UI — client shows per-VM team quota + your usage only
 - 2026-03-18: Changed to per-VM independent quota model — each VM has its own team quota and credit gate; hours displayed as decimals
-- 2026-03-18: Added batch model — multiple top-ups per VM with independent expiry dates; FIFO consumption by earliest expiry; total remaining as sum; red expiry warning indicator
+- 2026-03-18: Clarified platform context — ODE Platform; feature controlled by user-level flag for GEMU members
