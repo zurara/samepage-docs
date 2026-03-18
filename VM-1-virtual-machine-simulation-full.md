@@ -73,7 +73,7 @@ The Cluster Computing Epic defines the underlying distributed infrastructure —
 - **Your usage (per VM)**: Decimal hours consumed by the current user from a specific VM's quota.
 - **Team remaining (per VM)**: Team quota minus total member usage for that VM. Operative balance for credit gate.
 - **Credit gate**: Per VM — credit > 0 allows new launch; credit ≤ 0 blocks new launches on that VM only.
-- **Credit metering**: Billed per minute, rounded up. Expressed as decimal hours. e.g. 1 min 30 sec → 2 min → 0.033 hr.
+- **Credit metering**: Precise runtime recorded by backend. Expressed as decimal hours in UI. No product-level rounding.
 - **Top-up**: Adding hours to a VM's team quota. Deficit settled first. Handled by support (Phase 1–2), self-serve (Phase 3).
 - **Admin panel**: Interface for team admins to manage quota, view full usage, and configure VM access per member.
 - **Early Access**: Feature only visible to ODE users whose accounts are flagged as members of a participating team. Non-flagged users on the same ODE instance see no VM option and no Computation Credits section. Indicated by icon on visible UI elements. Removed in Phase 3 when feature becomes generally available.
@@ -144,6 +144,7 @@ See full task breakdown in [GEMU-1](./GEMU-1-vm-selection-team-credit.md).
 **Key decisions for Phase 2:**
 - TODO: Define admin role — is it a separate account type or a permission on existing accounts?
 - TODO: Define notification thresholds (10%? 5%? configurable?)
+- ⚠️ **Discussion needed: Unified credit system** — as VM types increase, per-VM hour quotas with different rates become hard to manage. Consider introducing a unified credit currency that converts to runtime per VM based on each type's rate. Top-ups would add to a shared credit pool rather than VM-specific hour quotas. Resolve before Phase 2 design starts.
 
 ---
 
