@@ -37,24 +37,33 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
 ## Key Terms
 
 - **Team Credit**: A shared credit pool per VM type. Each VM has its own independent quota allocated to the team. Unit is hours (decimal).
-- **Team Quota (per VM)**: Total hours allocated to the team for a specific VM type by admin. Each VM type has its own quota.
-- **Your Usage (per VM)**: How much credit (in decimal hours) the current user has consumed from a specific VM's team quota.
-- **Team Remaining (per VM)**: That VM's team quota minus all member usage. This is the operative balance for the credit gate of that VM.
+- **Team Quota (per VM)**: Total hours allocated to the team for a specific VM type, across all top-up batches.
+- **Top-up Batch**: A single top-up purchase with its own hour amount and expiry date. Multiple batches can exist per VM type.
+- **Your Usage (per VM)**: How much credit (in decimal hours) the current user has consumed from a specific VM's quota.
+- **Team Remaining (per VM)**: Sum of all unexpired batch hours minus total member usage. This is the operative balance for the credit gate.
+- **Consumption Order**: Hours are consumed from the earliest-expiring batch first.
+- **Expiry Warning**: A red indicator shown on a batch row when it is expiring soon. No hover hint — the indicator itself communicates urgency.
 - **VM Modal**: A configuration dialog that opens when "Run on virtual machine" is selected. Currently shows one machine spec; designed to support multiple machine types in future.
 - **Credit Gate (per VM)**: Independent per VM type. Credit > 0 allows launch on that VM. Credit ≤ 0 blocks new launches on that VM only.
 - **Credit Metering Unit**: Billed per minute, expressed as decimal hours. Runtime rounded up to nearest minute — e.g. 1 min 30 sec → 2 min → 0.033 hr deducted.
-- **Top-up**: Adding hours to a specific VM's team quota — handled by support in V1. Deficit settled first before new balance is usable.
+- **Top-up**: Adding a new hour batch to a VM's quota — handled by support in V1. Deficit settled first before new balance is usable.
 - **Early Access**: Feature is in limited rollout for whitelisted users. Indicated by icon, not text labels in hints.
 
 ---
 
 ## Decisions
 
-**Team-only credit model — no per-member visibility in UI:**
-- There is one shared team pool per VM type. Members only see team quota and their own usage — not other members'. Full usage breakdown is backend admin only. This keeps the UI simple and avoids privacy concerns between team members. Per-member quota allocation is a future admin panel feature.
+**Top-up batch model — multiple batches per VM:**
+- Each top-up creates a new batch with its own hour amount and expiry date. Multiple batches can coexist per VM type. Hours consumed from the earliest-expiring batch first — reduces risk of credit loss from expiry.
 
-**Per-VM independent quota:**
-- Each VM type has its own team quota. Credit gate is evaluated independently per VM — one VM being out of credits does not affect other VMs. This allows teams to have different budgets for different compute tiers. Backend must store quota and usage indexed by VM type, not as a single pool.
+**Expiry display — per batch, totalled:**
+- Each batch is shown as its own row with its expiry date. Total remaining across all batches is shown as a summary. Batches expiring within 30 days display a red indicator — no hover hint, the colour communicates urgency.
+
+**Total remaining is sum of all unexpired batches:**
+- `Team remaining` = sum of all batch hours minus total member usage. Not shown per-batch. The batch list shows each batch's original amount and expiry, not remaining per batch — keeping the calculation simple on the frontend.
+
+**Consumption order — FIFO by expiry:**
+- Hours deducted from the batch with the earliest expiry date first. Backend handles this automatically. Frontend does not need to display which batch is currently being consumed.
 
 **Hours displayed as decimals:**
 - All credit values displayed as decimal hours (e.g. 1.50 hr, 0.03 hr). No HH:MM:SS format. Keeps the display simple and consistent with how quotas are set and topped up.
@@ -82,19 +91,26 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
 
 **Copywriting — Computation Credits Section (Home / Payment):**
 - Section title: `Computation Credits`
-- One row per VM type, each row shows:
+- Per VM type, display:
   - VM spec label (e.g. `2vCPU · 16 GB RAM`)
   - `Your usage` · `[decimal] hr`
-  - `Team quota` · `[decimal] hr`
+  - Batch list — one row per top-up batch:
+    - `[amount] hr` · `Expires [date]` · *(red expiry warning indicator if expiring soon)*
+  - `Remaining` · `[sum of all batches minus usage] hr`
 - Example display:
   ```
-  2vCPU · 16 GB RAM    Your usage  0.50 hr    Team quota  120.00 hr
-  4vCPU · 32 GB RAM    Your usage  1.03 hr    Team quota   50.00 hr
+  2vCPU · 16 GB RAM
+    Your usage          0.50 hr
+
+    200.00 hr    Expires 2028-03-18
+     50.00 hr  ⚠ Expires 2026-04-01
+    ──────────────────────────────
+    Remaining         249.50 hr
   ```
 - No other members' usage shown
-- **Per-VM row ⓘ hint:**
+- **Per-VM ⓘ hint:**
   *"Team quota for this VM type. Shared across all members. Billed per minute (rounded up), shown in decimal hours. Current simulation always completes — new launches blocked at 0. Contact support to top up."*
-- **Low credit inline warning (< 1% of that VM's team quota remaining)** — shown under the affected VM row:
+- **Low credit inline warning (< 1% of total remaining):**
   *"Running low. Contact support to top up — top-up covers your deficit first, then adds to your balance."*
 
 ---
@@ -102,7 +118,7 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
 ## Tasks
 
 ### Design [D]
-- [ ] GEMU-1-D1 Design "Computation Credits" section — one row per VM type, each showing VM spec label, your usage (decimal hr), team quota (decimal hr). Low credit and disabled states per row.
+- [ ] GEMU-1-D1 Design "Computation Credits" section — per VM: your usage, batch list (amount + expiry date + red expiry warning indicator), total remaining. Low credit and disabled states per VM.
   - Owner: @TODO
   - Due: TODO
   - Estimate: 3d
@@ -126,7 +142,7 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
   - Depends on: GEMU-1-D1
 
 ### Frontend [F]
-- [ ] GEMU-1-F1 Implement "Computation Credits" section — render one row per VM type from API response. Each row: VM spec label, your usage, team quota in decimal hr. Component must handle variable number of VM rows.
+- [ ] GEMU-1-F1 Implement "Computation Credits" section — per VM: your usage, batch list (amount + expiry + red warning if expiring soon), total remaining as sum of all batches minus usage. Dynamic VM rows from API.
   - Owner: @TODO
   - Due: TODO
   - Estimate: 3d
@@ -148,11 +164,11 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
   - Depends on: GEMU-1-D4, GEMU-1-F1
 
 ### Backend [B]
-- [ ] GEMU-1-B1 API integration: Expose endpoint returning list of VM types with team quota (decimal hr) and current user's usage (decimal hr) per VM. Full per-member breakdown not exposed to client in V1.
+- [ ] GEMU-1-B1 API integration: Expose endpoint returning list of VM types, each with: top-up batch list (amount + expiry date), current user's usage (decimal hr), total remaining (sum of batches minus all member usage). FIFO consumption by earliest expiry handled in backend. Full per-member breakdown not exposed to client in V1.
   - Owner: @TODO
   - Estimate: 1d
 
-- [ ] GEMU-1-B2 API integration: Expose endpoint to accept VM launch with selected machine config; confirm per-minute metering (rounded up) deducts from correct VM quota on simulation end.
+- [ ] GEMU-1-B2 API integration: Expose endpoint to accept VM launch; confirm per-minute metering (rounded up) deducts from earliest-expiring batch first on simulation end.
   - Owner: @TODO
   - Estimate: 1d
   - Depends on: GEMU-1-B1
@@ -163,12 +179,12 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
   - Depends on: GEMU-1-B2
 
 ### Test [T]
-- [ ] GEMU-1-T1 Test credit display — accuracy of per-VM quota and usage rows, decimal formatting, low credit threshold per VM. Verify other members' data not exposed.
+- [ ] GEMU-1-T1 Test credit display — batch list accuracy (amounts + expiry dates), expiry warning indicator, total remaining calculation, decimal formatting. Verify other members' data not exposed.
   - Owner: @TODO
   - Estimate: 1d
   - Depends on: GEMU-1-F1, GEMU-1-B1
 
-- [ ] GEMU-1-T2 Test credit gate scenarios — (1) credit runs out mid-run: simulation completes, balance goes negative; (2) balance ≤ 0 at launch: VM disabled, hint shown; (3) top-up while negative: deficit settled first
+- [ ] GEMU-1-T2 Test credit gate scenarios — (1) credit runs out mid-run: simulation completes, balance goes negative; (2) balance ≤ 0 at launch: VM disabled, hint shown; (3) top-up while negative: deficit settled first; (4) two batches: verify earliest expiry consumed first
   - Owner: @TODO
   - Estimate: 2d
   - Depends on: GEMU-1-F4, GEMU-1-B3
@@ -202,6 +218,7 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
 
 ## Notes
 
+- **GEMU contract: 200 hr total, expires 3 years from purchase date**
 - VM provisioning, per-minute metering, and team/member account data model are already implemented in the backend — no new backend infrastructure required for this feature
 - TODO: Confirm what "contact support" means in UI — email link, in-app chat, or other channel
 - Backend should store per-VM, per-member usage from day one — client API only exposes current user's usage per VM in V1, full data ready for admin panel in V2
@@ -213,3 +230,4 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
 - 2026-03-18: Changed credit unit to hours, billed per minute rounded up (1 min 30 sec → 2 min → 0.033 hr)
 - 2026-03-18: Removed per-member usage from UI — client shows per-VM team quota + your usage only
 - 2026-03-18: Changed to per-VM independent quota model — each VM has its own team quota and credit gate; hours displayed as decimals
+- 2026-03-18: Added batch model — multiple top-ups per VM with independent expiry dates; FIFO consumption by earliest expiry; total remaining as sum; red expiry warning indicator
