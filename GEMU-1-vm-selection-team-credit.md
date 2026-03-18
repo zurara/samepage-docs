@@ -91,6 +91,12 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
 **Batch row layout — label left, amount right:**
 - Each batch row displays `Batch [n] · Expires [date]` on the left and the batch hour amount on the right. This allows amounts to stack visually and sum to the total shown in the Remaining row. The expiry warning indicator appears inline on the left, replacing or appending the date text when triggered.
 
+**Batch list expand / collapse:**
+- Each VM block defaults to collapsed — batch rows hidden, Remaining row always visible.
+- Clicking anywhere on the VM header row toggles expanded / collapsed. No separate chevron interaction required.
+- Exception: if any batch in the VM has an active expiry warning, that VM auto-expands on load so the warning is not hidden.
+- Remaining row is always visible regardless of collapse state.
+
 **Expired batches — out of scope for V1:**
 - Expired batches are not displayed in the UI. All active batches in V1 will be within their validity period. "You've used" therefore reflects consumption from active batches only.
 
@@ -133,7 +139,7 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
 ## Tasks
 
 ### Design [D]
-- [ ] GEMU-1-D1 Design "Computation Credits" section — per VM: you've used, batch list (batch label + expiry date + red expiry warning indicator + amount), total remaining. Low credit and disabled states per VM.
+- [ ] GEMU-1-D1 Design "Computation Credits" section — per VM: you've used, batch list (batch label + expiry date + red expiry warning indicator + amount) with expand/collapse toggle, total remaining always visible. Low credit and disabled states per VM.
   - Owner: @TODO
   - Due: TODO
   - Estimate: 3d
@@ -157,7 +163,7 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
   - Depends on: GEMU-1-D1
 
 ### Frontend [F]
-- [ ] GEMU-1-F1 Implement "Computation Credits" section — per VM: you've used (flat total from active batches), batch list (batch label + expiry + amount + red warning if expiring soon), total remaining as sum of all batches minus usage. Dynamic VM rows from API.
+- [ ] GEMU-1-F1 Implement "Computation Credits" section — per VM: you've used (flat total from active batches), batch list with expand/collapse toggle (batch label + expiry + amount + red warning if expiring soon), Remaining always visible regardless of collapse state. Dynamic VM rows from API.
   - Owner: @TODO
   - Due: TODO
   - Estimate: 3d
@@ -270,3 +276,4 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
 - 2026-03-18: Removed rounding rule — backend records precise runtime, display in decimal hours only
 - 2026-03-18: Added two open discussion items — result storage limits and failed simulation billing
 - 2026-03-18: Updated copywriting — "Your usage" → "You've used"; batch rows now show label + expiry on left, amount on right; expired batch display deferred to V2
+- 2026-03-18: Added expand/collapse for batch list — default collapsed; click header to toggle; auto-expands when expiry warning is active; Remaining always visible
