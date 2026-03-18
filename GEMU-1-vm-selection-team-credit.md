@@ -41,7 +41,7 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
 - **Team Credit**: A shared credit pool per VM type. Each VM has its own independent quota allocated to the team. Unit is hours (decimal).
 - **Team Quota (per VM)**: Total hours allocated to the team for a specific VM type, across all top-up batches.
 - **Top-up Batch**: A single top-up purchase with its own hour amount and expiry date. Multiple batches can exist per VM type.
-- **Your Usage (per VM)**: How much credit (in decimal hours) the current user has consumed from a specific VM's quota.
+- **You've Used (per VM)**: Total hours consumed by the current user from active batches for this VM type. Displayed as a flat total — no per-batch breakdown. Shown in the UI as "You've used".
 - **Team Remaining (per VM)**: Sum of all unexpired batch hours minus total member usage. This is the operative balance for the credit gate.
 - **Consumption Order**: Hours are consumed from the earliest-expiring batch first.
 - **Expiry Warning**: A red indicator shown on a batch row when it is expiring soon. No hover hint — the indicator itself communicates urgency.
@@ -85,6 +85,15 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
 **No admin panel in V1:**
 - Team quota management, per-member allocation, and usage reports are out of scope. This version is read-only visibility for all team members.
 
+**"You've used" — flat total from active batches:**
+- Displays the current user's total consumption across all active (unexpired) batches for that VM. Calculated as a flat total by the backend — no per-batch breakdown on the frontend. Expired batches are not shown in V1; the team will have a new dashboard before any current batches expire.
+
+**Batch row layout — label left, amount right:**
+- Each batch row displays `Batch [n] · Expires [date]` on the left and the batch hour amount on the right. This allows amounts to stack visually and sum to the total shown in the Remaining row. The expiry warning indicator appears inline on the left, replacing or appending the date text when triggered.
+
+**Expired batches — out of scope for V1:**
+- Expired batches are not displayed in the UI. All active batches in V1 will be within their validity period. "You've used" therefore reflects consumption from active batches only.
+
 **Copywriting — Simulation Setup Dropdown:**
 - Label: `Run on`
 - Options:
@@ -98,19 +107,20 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
 - Section title: `Computation Credits`
 - Per VM type, display:
   - VM spec label (e.g. `2vCPU · 16 GB RAM`)
-  - `Your usage` · `[decimal] hr`
+  - `You've used` · `[decimal] hr`
   - Batch list — one row per top-up batch:
-    - `[amount] hr` · `Expires [date]` · *(red expiry warning indicator if expiring soon)*
+    - Left: `Batch [n] · Expires [date]` · *(red expiry warning indicator if expiring soon)*
+    - Right: `[amount] hr`
   - `Remaining` · `[sum of all batches minus usage] hr`
 - Example display:
   ```
   2vCPU · 16 GB RAM
-    Your usage          0.50 hr
+    You've used                              10.15 hr
 
-    200.00 hr    Expires 2028-03-18
-     50.00 hr  ⚠ Expires 2026-04-01
-    ──────────────────────────────
-    Remaining         249.50 hr
+    Batch 1 · Expires Apr 1, 2026  ⚠       200.00 hr
+    Batch 2 · Expires Mar 18, 2028           50.00 hr
+    ──────────────────────────────────────────────────
+    Remaining                               239.85 hr
   ```
 - No other members' usage shown
 - **Per-VM ⓘ hint:**
@@ -123,7 +133,7 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
 ## Tasks
 
 ### Design [D]
-- [ ] GEMU-1-D1 Design "Computation Credits" section — per VM: your usage, batch list (amount + expiry date + red expiry warning indicator), total remaining. Low credit and disabled states per VM.
+- [ ] GEMU-1-D1 Design "Computation Credits" section — per VM: you've used, batch list (batch label + expiry date + red expiry warning indicator + amount), total remaining. Low credit and disabled states per VM.
   - Owner: @TODO
   - Due: TODO
   - Estimate: 3d
@@ -147,7 +157,7 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
   - Depends on: GEMU-1-D1
 
 ### Frontend [F]
-- [ ] GEMU-1-F1 Implement "Computation Credits" section — per VM: your usage, batch list (amount + expiry + red warning if expiring soon), total remaining as sum of all batches minus usage. Dynamic VM rows from API.
+- [ ] GEMU-1-F1 Implement "Computation Credits" section — per VM: you've used (flat total from active batches), batch list (batch label + expiry + amount + red warning if expiring soon), total remaining as sum of all batches minus usage. Dynamic VM rows from API.
   - Owner: @TODO
   - Due: TODO
   - Estimate: 3d
@@ -169,7 +179,7 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
   - Depends on: GEMU-1-D4, GEMU-1-F1
 
 ### Backend [B]
-- [ ] GEMU-1-B1 API integration: Expose endpoint returning list of VM types, each with: top-up batch list (amount + expiry date), current user's usage (decimal hr), total remaining (sum of batches minus all member usage). FIFO consumption by earliest expiry handled in backend. Full per-member breakdown not exposed to client in V1.
+- [ ] GEMU-1-B1 API integration: Expose endpoint returning list of VM types, each with: top-up batch list (amount + expiry date), current user's usage as flat total from active batches (decimal hr), total remaining (sum of active batches minus all member usage). FIFO consumption by earliest expiry handled in backend. Full per-member breakdown not exposed to client in V1.
   - Owner: @TODO
   - Estimate: 1d
 
@@ -188,7 +198,7 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
   - Estimate: 1d
 
 ### Test [T]
-- [ ] GEMU-1-T1 Test credit display — batch list accuracy (amounts + expiry dates), expiry warning indicator, total remaining calculation, decimal formatting. Verify other members' data not exposed.
+- [ ] GEMU-1-T1 Test credit display — batch list accuracy (batch labels + amounts + expiry dates), expiry warning indicator, total remaining calculation, decimal formatting, "you've used" flat total. Verify other members' data not exposed.
   - Owner: @TODO
   - Estimate: 1d
   - Depends on: GEMU-1-F1, GEMU-1-B1
@@ -214,6 +224,7 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
 - Self-serve credit top-up / payment UI (support-only in V1)
 - Credit usage history or simulation cost breakdown (V2)
 - Email or in-app notifications for low balance (V2)
+- Expired batch display (V2 — not needed before current batches expire)
 
 **Future considerations:**
 - Admin panel: set team quota, allocate per-member limits, view usage reports (V2)
@@ -238,11 +249,17 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
 - Backend should store per-VM, per-member usage from day one — client API only exposes current user's usage per VM in V1, full data ready for admin panel in V2
 - Frontend component must render VM rows dynamically from API list — never hardcode VM types
 
+> ⚠️ **Discussion needed: VM type pricing differences**
+> The current model uses hours (hr) as a unified quota unit across all VM types. If different VM types have different hourly rates in future (e.g. 4vCPU costs more per hour than 2vCPU), the current unified hr quota model will not support this directly. Needs discussion before Phase 2: should the quota unit change to a currency or points system, or should each VM type maintain its own hr quota with an independent price coefficient?
+
 > ⚠️ **Discussion needed: Simulation result storage**
 > If a simulation produces large result files, where are they stored and who pays for storage? Storage limits could become a blocker for heavy VM users. Needs clarification before feature goes live.
 
 > ⚠️ **Discussion needed: Failed simulation billing**
 > If a simulation fails, does the runtime still count against the team quota? Two cases need separate answers: (1) failure caused by user configuration error — likely should count; (2) failure caused by platform/infrastructure error — likely should not count. **Check contract with GEMU on how this is defined.**
+
+> ⚠️ **Discussion needed: Unified credit system across VM types**
+> The current model uses hours (hr) as a unified quota unit across all VM types. If different VM types have different hourly rates in future (e.g. 4vCPU costs more per hour than 2vCPU), the current unified hr quota model will not support this directly. Needs discussion before Phase 2: should the quota unit change to a currency or points system, or should each VM type maintain its own hr quota with an independent price coefficient?
 
 ## Changelog
 
@@ -252,3 +269,4 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
 - 2026-03-18: Changed to per-VM independent quota model — each VM has its own team quota and credit gate; hours displayed as decimals
 - 2026-03-18: Removed rounding rule — backend records precise runtime, display in decimal hours only
 - 2026-03-18: Added two open discussion items — result storage limits and failed simulation billing
+- 2026-03-18: Updated copywriting — "Your usage" → "You've used"; batch rows now show label + expiry on left, amount on right; expired batch display deferred to V2
