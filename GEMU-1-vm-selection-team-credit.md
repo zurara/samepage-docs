@@ -123,7 +123,7 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
     Remaining                               239.85 hr
   ```
 - No other members' usage shown
-- **Per-VM ⓘ hint:**
+- **Per-VM ⓘ hint** — appears on the VM header row next to the spec label (e.g. `2vCPU · 16 GB RAM ⓘ`), not on the Remaining row:
   *"Team quota for this VM type. Shared across all members. Usage shown in decimal hours. Current simulation always completes — new launches blocked at 0. Contact support to top up."*
 - **Low credit inline warning (< 1% of total remaining):**
   *"Running low. Contact support to top up — top-up covers your deficit first, then adds to your balance."*
