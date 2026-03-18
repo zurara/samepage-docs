@@ -47,7 +47,7 @@ View per-VM quota + your usage (Home → Computation Credits) → Select simulat
 - **Expiry Warning**: A red indicator shown on a batch row when it is expiring soon. No hover hint — the indicator itself communicates urgency.
 - **VM Modal**: A configuration dialog that opens when "Run on virtual machine" is selected. Currently shows one machine spec; designed to support multiple machine types in future.
 - **Credit Gate (per VM)**: Independent per VM type. Credit > 0 allows launch on that VM. Credit ≤ 0 blocks new launches on that VM only.
-- **Credit Metering Unit**: Billed per minute, expressed as decimal hours. Runtime rounded up to nearest minute — e.g. 1 min 30 sec → 2 min → 0.033 hr deducted.
+- **Credit Metering Unit**: Runtime recorded precisely by the backend and expressed as decimal hours. e.g. 1 min 30 sec → 0.025 hr.
 - **Top-up**: Adding a new hour batch to a VM's quota — handled by support in V1. Deficit settled first before new balance is usable.
 - **Early Access**: Feature only visible to ODE users whose accounts are flagged as GEMU members in the backend. Non-flagged users see no VM option and no Computation Credits section. Indicated by icon on visible UI elements.
 
