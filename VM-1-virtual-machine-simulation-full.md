@@ -13,9 +13,9 @@ Engineering teams need flexible, scalable compute options for simulation workloa
 
 ## Who
 
-- **Team members**: Engineers who select compute environments and run simulations
+- **Team members**: Engineers using the ODE Platform whose accounts are flagged for VM access
 - **Team admins**: Manage quota allocation per VM type, monitor team-wide usage, top up credits
-- **Platform support**: Handle credit top-ups and account management in early phases before self-serve is available
+- **Platform support**: Handle user flagging, credit top-ups, and account management in early phases
 
 ## What
 
@@ -76,11 +76,15 @@ The Cluster Computing Epic defines the underlying distributed infrastructure —
 - **Credit metering**: Billed per minute, rounded up. Expressed as decimal hours. e.g. 1 min 30 sec → 2 min → 0.033 hr.
 - **Top-up**: Adding hours to a VM's team quota. Deficit settled first. Handled by support (Phase 1–2), self-serve (Phase 3).
 - **Admin panel**: Interface for team admins to manage quota, view full usage, and configure VM access per member.
-- **Early Access**: Limited rollout for whitelisted users. Indicated by icon in UI.
+- **Early Access**: Feature only visible to ODE users whose accounts are flagged as members of a participating team. Non-flagged users on the same ODE instance see no VM option and no Computation Credits section. Indicated by icon on visible UI elements. Removed in Phase 3 when feature becomes generally available.
+- **User flag**: A boolean field on an ODE user account that enables VM feature access. Set by support or backend admin. Not a role or permission system.
 
 ---
 
 ## Decisions
+
+**Feature visibility — user-level flag on ODE Platform:**
+- VM feature is rendered only for ODE users with the flag enabled. Controlled in backend. Non-flagged users on the same platform see no difference. In Phase 3, the flag is removed and the feature becomes available to all ODE users.
 
 **Per-VM independent quota:**
 - Each VM type has its own quota pool. Credit gate is evaluated independently per VM. One VM being exhausted does not affect other VMs. Backend stores quota and usage indexed by VM type.
@@ -197,3 +201,4 @@ See full task breakdown in [GEMU-1](./GEMU-1-vm-selection-team-credit.md).
 - 2026-03-18: Added GEMU contract details — 200 hr total, 3-year expiry
 - 2026-03-18: Added Cluster Computing Epic as upstream dependency; mapped epic stories to VM-1 phases
 - 2026-03-18: Confirmed expiry warning threshold — 30 days
+- 2026-03-18: Clarified platform — ODE Platform; Early Access controlled by user-level flag per account
