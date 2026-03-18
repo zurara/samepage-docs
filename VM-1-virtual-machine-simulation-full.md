@@ -33,24 +33,38 @@ Engineering teams need flexible, scalable compute options for simulation workloa
 
 **System Architecture:**
 ```
-VM-1
-├── Phase 1 — GEMU-1 (Early Access, current)
-│   ├── Member: VM dropdown + modal (single VM)
-│   ├── Member: Computation Credits display (per-VM quota + your usage)
-│   └── Backend: API integration with existing metering infrastructure
-│
-├── Phase 2 — Multi-VM + Admin Panel (next)
-│   ├── Admin panel: quota management per VM per team
-│   ├── Admin panel: full per-member usage breakdown
-│   ├── Multi-machine modal: spec comparison, tier selection
-│   └── Usage history and per-simulation cost breakdown
-│
-└── Phase 3 — Self-serve & Scale
-    ├── Self-serve top-up with payment integration
-    ├── Per-simulation cost estimate before launch
-    ├── Credit alerts and notifications
-    └── General availability (remove whitelist)
+Cluster Computing Epic (upstream infrastructure)
+└── VM-1 (client-facing layer built on top)
+    ├── Phase 1 — GEMU-1 (Early Access, current)
+    │   ├── Member: VM dropdown + modal (single VM)
+    │   ├── Member: Computation Credits display (per-VM quota + your usage)
+    │   └── Backend: API integration with existing metering infrastructure
+    │
+    ├── Phase 2 — Multi-VM + Admin Panel (next)
+    │   ├── Admin panel: quota management per VM per team
+    │   ├── Admin panel: full per-member usage breakdown
+    │   ├── Multi-machine modal: spec comparison, tier selection
+    │   └── Usage history and per-simulation cost breakdown
+    │
+    └── Phase 3 — Self-serve & Scale
+        ├── Self-serve top-up with payment integration
+        ├── Per-simulation cost estimate before launch
+        ├── Credit alerts and notifications
+        └── General availability (remove whitelist)
 ```
+
+**Relationship to Cluster Computing Epic:**
+
+The Cluster Computing Epic defines the underlying distributed infrastructure — FMU task generation, resource allocation, task scheduling and distribution, and result aggregation. VM-1 is the client-facing product layer built on top of that infrastructure. Specifically:
+
+| Cluster Epic | VM-1 Dependency |
+|---|---|
+| Story 1.x — FMU task packaging & configuration | VM-1 assumes FMUs can be packaged and dispatched to a node |
+| Story 2.x — Resource inventory & allocation policies | VM-1 credit gate determines whether a node is requested; allocation policy is backend concern |
+| Story 2.3 — Scaling capabilities | VM-1 Phase 3 self-serve and GA depends on elastic resource availability |
+| Story 3.x — Task scheduling & execution management | VM-1 shows simulation status; execution lifecycle managed by cluster layer |
+| Story 4.1–4.3 — Result collection & visualisation | VM-1 does not own result handling — results surface in the app that launched the simulation |
+| Story 4.4 — Failure recovery | In-flight completion guarantee in VM-1 depends on cluster-level retry and recovery |
 
 ## Key Terms
 
@@ -169,11 +183,17 @@ See full task breakdown in [GEMU-1](./GEMU-1-vm-selection-team-credit.md).
 
 ## Notes
 
+- **GEMU contract (Phase 1): 200 hr total, expires 3 years from purchase date**
+- **Expiry warning threshold: 30 days before expiry date**
 - TODO: Confirm credit rate per hour per VM type
 - TODO: Confirm support contact method for top-up (email, in-app, other)
 - TODO: Define admin role model before Phase 2 starts
 - Backend metering, credit gate logic, and team/member data model are already implemented — Phase 1 only requires API integration
+- Cluster Computing Epic is upstream infrastructure — VM-1 is the client-facing layer; coordinate with cluster epic owners before Phase 2 and Phase 3
 
 ## Changelog
 
 - 2026-03-18: Created VM-1 master PRD; GEMU-1 defined as Phase 1
+- 2026-03-18: Added GEMU contract details — 200 hr total, 3-year expiry
+- 2026-03-18: Added Cluster Computing Epic as upstream dependency; mapped epic stories to VM-1 phases
+- 2026-03-18: Confirmed expiry warning threshold — 30 days
